@@ -1,0 +1,61 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+    Simple monitor for s3 objects
+Parameters:
+    Stage:
+        Type: String
+    ProjectName:
+        Type: String
+    BucketName:
+        Type: String
+    ObjectPattern:
+        Type: String
+    Schedule:
+        Type: String
+
+Globals:
+    Function:
+        Timeout: 30
+        Layers:
+        - !Ref 'Runtime'
+
+Resources:
+    Runtime:
+        Type: AWS::Serverless::LayerVersion
+        Properties:
+            RetentionPolicy: Retain
+            LayerName: !Sub '${ProjectName}-layer-${Stage}'
+            ContentUri: runtime/
+            CompatibleRuntimes:
+                - python3.7
+
+    Handler:
+        Type: AWS::Serverless::Function 
+        Properties:
+            FunctionName: !Sub '${ProjectName}-handler-${Stage}'
+            CodeUri: src/
+            Handler: monitor.app.handler
+            Runtime: python3.7
+            Policies:
+            - S3ReadPolicy:
+                BucketName: !Ref BucketName
+            Events:
+                Timer:
+                    Type: Schedule
+                    Properties:
+                        Schedule: !Ref Schedule
+            Environment:
+                Variables:
+                    OBJECT_PATTERN: !Ref ObjectPattern
+                    BUCKET: !Ref BucketName
+
+    MissingObjectMetricFilter: 
+        Type: AWS::Logs::MetricFilter
+        Properties: 
+            LogGroupName: !Sub '/aws/lambda/${ProjectName}-handler-${Stage}'
+            FilterPattern: '{$.level="ERROR"}'
+            MetricTransformations: 
+            - MetricValue: "1"
+              MetricNamespace: !Sub "${ProjectName}-handler-${Stage}/errors"
+              MetricName: "count"
