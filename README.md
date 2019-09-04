@@ -27,7 +27,6 @@ Some environment variables need to be configured before deployment:
 NAME|DESCRIPTION|DEFAULT
 ---|---|---
 STAGE|an identifier for the deployment stage, such as "dev" or "prod"|dev
-UPSTREAM|The url for the service to be proxied|https://www.example.com/
 SCHEDULE|A schedule expression for CloudWatch Events|cron(0 12 * * ? *)
 BUCKET_NAME|The bucket to check|example-bucket
 OBJECT_PATTERN|A python strftime compatibile pattern to locate the object|path/to/sample-%Y-%m-%d
