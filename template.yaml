@@ -50,10 +50,16 @@ Resources:
                     OBJECT_PATTERN: !Ref ObjectPattern
                     BUCKET: !Ref BucketName
 
+    LogGroup:
+       Type: AWS::Logs::LogGroup
+       Properties:
+           LogGroupName: !Sub '/aws/lambda/${ProjectName}-handler-${Stage}'
+           RetentionInDays: 30
+    
     MissingObjectMetricFilter: 
         Type: AWS::Logs::MetricFilter
         Properties: 
-            LogGroupName: !Sub '/aws/lambda/${ProjectName}-handler-${Stage}'
+            LogGroupName: !Ref LogGroup
             FilterPattern: '{$.level="ERROR"}'
             MetricTransformations: 
             - MetricValue: "1"
